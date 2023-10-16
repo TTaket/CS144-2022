@@ -2,17 +2,15 @@ enable_testing ()
 
 set (LOSS_RATE 0.1)
 
-add_test(NAME t_wrapping_ints_cmp         COMMAND wrapping_integers_cmp)
-add_test(NAME t_wrapping_ints_unwrap      COMMAND wrapping_integers_unwrap)
-add_test(NAME t_wrapping_ints_wrap        COMMAND wrapping_integers_wrap)
-add_test(NAME t_wrapping_ints_roundtrip   COMMAND wrapping_integers_roundtrip)
+add_test(NAME t_wrapping_ints_cmp    COMMAND wrapping_integers_cmp)
+add_test(NAME t_wrapping_ints_unwrap COMMAND wrapping_integers_unwrap)
+add_test(NAME t_wrapping_ints_wrap   COMMAND wrapping_integers_wrap)
 
 add_test(NAME t_recv_connect         COMMAND recv_connect)
 add_test(NAME t_recv_transmit        COMMAND recv_transmit)
 add_test(NAME t_recv_window          COMMAND recv_window)
 add_test(NAME t_recv_reorder         COMMAND recv_reorder)
 add_test(NAME t_recv_close           COMMAND recv_close)
-add_test(NAME t_recv_special         COMMAND recv_special)
 
 add_test(NAME t_send_connect         COMMAND send_connect)
 add_test(NAME t_send_transmit        COMMAND send_transmit)
@@ -20,7 +18,6 @@ add_test(NAME t_send_retx            COMMAND send_retx)
 add_test(NAME t_send_window          COMMAND send_window)
 add_test(NAME t_send_ack             COMMAND send_ack)
 add_test(NAME t_send_close           COMMAND send_close)
-add_test(NAME t_send_extra           COMMAND send_extra)
 
 add_test(NAME t_strm_reassem_single      COMMAND fsm_stream_reassembler_single)
 add_test(NAME t_strm_reassem_seq         COMMAND fsm_stream_reassembler_seq)
@@ -29,7 +26,6 @@ add_test(NAME t_strm_reassem_holes       COMMAND fsm_stream_reassembler_holes)
 add_test(NAME t_strm_reassem_many        COMMAND fsm_stream_reassembler_many)
 add_test(NAME t_strm_reassem_overlapping COMMAND fsm_stream_reassembler_overlapping)
 add_test(NAME t_strm_reassem_win         COMMAND fsm_stream_reassembler_win)
-add_test(NAME t_strm_reassem_cap         COMMAND fsm_stream_reassembler_cap)
 
 add_test(NAME t_byte_stream_construction COMMAND byte_stream_construction)
 add_test(NAME t_byte_stream_one_write    COMMAND byte_stream_one_write)
@@ -38,10 +34,6 @@ add_test(NAME t_byte_stream_capacity     COMMAND byte_stream_capacity)
 add_test(NAME t_byte_stream_many_writes  COMMAND byte_stream_many_writes)
 
 add_test(NAME t_webget               COMMAND "${PROJECT_SOURCE_DIR}/tests/webget_t.sh")
-
-add_test(NAME arp_network_interface    COMMAND net_interface)
-
-add_test(NAME router_test    COMMAND network_simulator)
 
 add_test(NAME t_tcp_parser           COMMAND tcp_parser "${PROJECT_SOURCE_DIR}/tests/ipv4_parser.data")
 add_test(NAME t_ipv4_parser          COMMAND ipv4_parser "${PROJECT_SOURCE_DIR}/tests/ipv4_parser.data")
@@ -217,22 +209,16 @@ add_custom_target (check_webget COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failu
                               COMMENT "Testing webget...")
 add_custom_target (check_lab0 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_webget|t_byte_stream|_dt'
                               COMMENT "Testing Lab 0...")
-add_custom_target (check_lab1 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_strm_reassem_|t_byte_stream|_dt'
+add_custom_target (check_lab1 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_strm_reassem_|t_webget|t_byte_stream|_dt'
                               COMMENT "Testing the stream reassembler...")
-add_custom_target (check_lab2 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_recv_|t_wrapping_|t_strm_reassem_|t_byte_stream|_dt'
+add_custom_target (check_lab2 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_recv_|t_wrapping_|t_strm_reassem_|t_webget|t_byte_stream|_dt'
                               COMMENT "Testing the TCP receiver...")
-add_custom_target (check_lab3 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_send_|t_recv_|t_wrapping_|t_strm_reassem_|t_byte_stream|_dt'
+add_custom_target (check_lab3 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_send_|t_recv_|t_wrapping_|t_strm_reassem_|t_webget|t_byte_stream|_dt'
                               COMMENT "Testing the TCP sender...")
 add_custom_target (check_lab4 COMMAND "${PROJECT_SOURCE_DIR}/tun.sh" check 144 145
                               COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R "^t_"
-                              COMMENT "Testing the TCP connection...")
-add_custom_target (check_lab5 COMMAND "${PROJECT_SOURCE_DIR}/tap.sh" check 10
-                              COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R '^t_webget|^arp_'
-                              COMMENT "Testing Lab 5...")
-add_custom_target (check_lab6 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R '^arp_|^router_'
-                              COMMENT "Testing Lab 6...")
+                              COMMENT "Testing libsponge...")
 
 add_custom_target (check COMMAND "${PROJECT_SOURCE_DIR}/tun.sh" check 144 145
-                         COMMAND "${PROJECT_SOURCE_DIR}/tap.sh" check 10
-                         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R '^t_|^arp_|^router_'
+                         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R "^t_"
                          COMMENT "Testing libsponge...")

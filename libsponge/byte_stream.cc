@@ -1,5 +1,9 @@
 #include "byte_stream.hh"
 
+#include <algorithm>
+#include <iterator>
+#include <stdexcept>
+
 // Dummy implementation of a flow-controlled in-memory byte stream.
 
 // For Lab 0, please replace with a real implementation that passes the
@@ -27,14 +31,6 @@ string ByteStream::peek_output(const size_t len) const {
 
 //! \param[in] len bytes will be removed from the output side of the buffer
 void ByteStream::pop_output(const size_t len) { DUMMY_CODE(len); }
-
-//! Read (i.e., copy and then pop) the next "len" bytes of the stream
-//! \param[in] len bytes will be popped and returned
-//! \returns a string
-std::string ByteStream::read(const size_t len) {
-    DUMMY_CODE(len);
-    return {};
-}
 
 void ByteStream::end_input() {}
 
