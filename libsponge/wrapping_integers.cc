@@ -13,7 +13,9 @@ using namespace std;
 //! \param n The input absolute 64-bit sequence number
 //! \param isn The initial sequence number
 WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
-    return WrappingInt32{(static_cast<uint32_t>(n % static_cast<uint64_t>UINT32_MAX) + isn.raw_value()) % UINT32_MAX};
+    uint64_t baselen = (static_cast<uint64_t>( static_cast<uint64_t>(1) << 32 ) );
+    uint32_t ret_raw_value_ = ((n + isn.raw_value()) %baselen);
+    return WrappingInt32 { ret_raw_value_ };
 }
 
 //! Transform a WrappingInt32 into an "absolute" 64-bit sequence number (zero-indexed)
@@ -27,24 +29,20 @@ WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
 //! and the other stream runs from the remote TCPSender to the local TCPReceiver and
 //! has a different ISN.
 uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
-    uint64_t addval = (static_cast<uint64_t>UINT32_MAX + static_cast<uint64_t>(n.raw_value()) - static_cast<uint64_t>(isn.raw_value()) )% static_cast<uint64_t>UINT32_MAX;
-    uint64_t l = 0;
-    uint64_t r = static_cast<uint64_t>UINT32_MAX;
-    while(l < r-1){
-        uint64_t mid = (l + r )/2;
-        if(mid * static_cast<uint64_t>UINT32_MAX + addval <= checkpoint) l=mid;
-        else r =mid;
-    }
-    //特判
-    if(r== static_cast<uint64_t>UINT32_MAX){
-        return addval + l * static_cast<uint64_t>UINT32_MAX;
-    }
-
-    uint64_t val1 = addval + l * static_cast<uint64_t>UINT32_MAX;
-    uint64_t val2 = addval + r * static_cast<uint64_t>UINT32_MAX;
-    if(checkpoint - val1 < val2 - checkpoint){
-        return val1;
-    }else{
-        return val2;
-    }
+  uint64_t baselen = (static_cast<uint64_t>( static_cast<uint64_t>(1) << 32 ) );
+  uint64_t checkval = (static_cast<uint64_t>( static_cast<uint64_t>(1) << 31 ) );
+  uint64_t modlen = (n.raw_value() - isn.raw_value() + baselen)%baselen;    //取mod 后的长度 也是最小的真实距离
+  uint64_t retval = 0;
+  if(int64_t(checkpoint)/int64_t(baselen) == 0 ){
+    retval =  modlen ;
+  }else{
+    retval = (uint64_t(int64_t(checkpoint)/int64_t(baselen)) - 1) * baselen + modlen;
+  }
+  while((retval < checkpoint)){
+    if((checkpoint - retval) > checkval)
+      retval+=baselen;
+    else
+      break;
+  }
+  return retval ;
 }
