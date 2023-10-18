@@ -54,21 +54,23 @@ int main() {
             test.execute(ExpectWindow{cap});
         }
 
-        {
-            // high-seqno segment is rejected
-            size_t cap = 2;
-            uint32_t isn = 23452;
-            TCPReceiverTestHarness test{cap};
-            test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
-            test.execute(ExpectAckno{WrappingInt32{isn + 1}});
-            test.execute(ExpectWindow{cap});
-            test.execute(ExpectTotalAssembledBytes{0});
-            test.execute(SegmentArrives{}.with_seqno(isn + 3).with_data("cd").with_result(
-                SegmentArrives::Result::OUT_OF_WINDOW));
-            test.execute(ExpectAckno{WrappingInt32{isn + 1}});
-            test.execute(ExpectWindow{cap});
-            test.execute(ExpectTotalAssembledBytes{0});
-        }
+        /* remove requirement for corrective ACK on out-of-window segment
+            {
+                // high-seqno segment is rejected
+                size_t cap = 2;
+                uint32_t isn = 23452;
+                TCPReceiverTestHarness test{cap};
+                test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
+                test.execute(ExpectAckno{WrappingInt32{isn + 1}});
+                test.execute(ExpectWindow{cap});
+                test.execute(ExpectTotalAssembledBytes{0});
+                test.execute(SegmentArrives{}.with_seqno(isn + 3).with_data("cd").with_result(
+                    SegmentArrives::Result::OUT_OF_WINDOW));
+                test.execute(ExpectAckno{WrappingInt32{isn + 1}});
+                test.execute(ExpectWindow{cap});
+                test.execute(ExpectTotalAssembledBytes{0});
+            }
+        */
 
         {
             // almost-high-seqno segment is accepted, but only some bytes are kept
@@ -86,19 +88,21 @@ int main() {
             test.execute(ExpectWindow{2});
         }
 
-        {
-            // low-seqno segment is rejected
-            size_t cap = 4;
-            uint32_t isn = 294058;
-            TCPReceiverTestHarness test{cap};
-            test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
-            test.execute(SegmentArrives{}.with_data("ab").with_seqno(isn + 1).with_result(SegmentArrives::Result::OK));
-            test.execute(ExpectTotalAssembledBytes{2});
-            test.execute(ExpectWindow{cap - 2});
-            test.execute(SegmentArrives{}.with_data("ab").with_seqno(isn + 1).with_result(
-                SegmentArrives::Result::OUT_OF_WINDOW));
-            test.execute(ExpectTotalAssembledBytes{2});
-        }
+        /* remove requirement for corrective ACK on out-of-window segment
+            {
+                // low-seqno segment is rejected
+                size_t cap = 4;
+                uint32_t isn = 294058;
+                TCPReceiverTestHarness test{cap};
+                test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
+                test.execute(SegmentArrives{}.with_data("ab").with_seqno(isn +
+           1).with_result(SegmentArrives::Result::OK)); test.execute(ExpectTotalAssembledBytes{2});
+                test.execute(ExpectWindow{cap - 2});
+                test.execute(SegmentArrives{}.with_data("ab").with_seqno(isn + 1).with_result(
+                    SegmentArrives::Result::OUT_OF_WINDOW));
+                test.execute(ExpectTotalAssembledBytes{2});
+            }
+        */
 
         {
             // almost-low-seqno segment is accepted
@@ -114,41 +118,34 @@ int main() {
             test.execute(ExpectWindow{cap - 3});
         }
 
-        {
-            // second SYN is rejected
-            size_t cap = 2;
-            uint32_t isn = 23452;
-            TCPReceiverTestHarness test{cap};
-            test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
-            test.execute(
-                SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OUT_OF_WINDOW));
-            test.execute(ExpectWindow{cap});
-            test.execute(ExpectTotalAssembledBytes{0});
-        }
+        /* remove requirement for corrective ACK on out-of-window segment
+            {
+                // second SYN is rejected
+                size_t cap = 2;
+                uint32_t isn = 23452;
+                TCPReceiverTestHarness test{cap};
+                test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
+                test.execute(
+                    SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OUT_OF_WINDOW));
+                test.execute(ExpectWindow{cap});
+                test.execute(ExpectTotalAssembledBytes{0});
+            }
+        */
 
-        {
-            // second FIN is rejected
-            size_t cap = 2;
-            uint32_t isn = 23452;
-            TCPReceiverTestHarness test{cap};
-            test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
-            test.execute(SegmentArrives{}.with_fin().with_seqno(isn + 1).with_result(SegmentArrives::Result::OK));
-            test.execute(
-                SegmentArrives{}.with_fin().with_seqno(isn + 1).with_result(SegmentArrives::Result::OUT_OF_WINDOW));
-            test.execute(ExpectWindow{cap});
-            test.execute(ExpectTotalAssembledBytes{0});
-        }
-
-        {
-            // Segment overflowing the window on both sides is unacceptable.
-            size_t cap = 4;
-            uint32_t isn = 23452;
-            TCPReceiverTestHarness test{cap};
-            test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
-            test.execute(SegmentArrives{}.with_seqno(isn + 1).with_data("ab").with_result(SegmentArrives::Result::OK));
-            test.execute(SegmentArrives{}.with_seqno(isn + 1).with_data("abcdef").with_result(
-                SegmentArrives::Result::OUT_OF_WINDOW));
-        }
+        /* remove requirement for corrective ACK on out-of-window segment
+            {
+                // second FIN is rejected
+                size_t cap = 2;
+                uint32_t isn = 23452;
+                TCPReceiverTestHarness test{cap};
+                test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
+                test.execute(SegmentArrives{}.with_fin().with_seqno(isn + 1).with_result(SegmentArrives::Result::OK));
+                test.execute(
+                    SegmentArrives{}.with_fin().with_seqno(isn + 1).with_result(SegmentArrives::Result::OUT_OF_WINDOW));
+                test.execute(ExpectWindow{cap});
+                test.execute(ExpectTotalAssembledBytes{0});
+            }
+        */
 
         {
             // Segment overflowing the window on left side is acceptable.
@@ -169,6 +166,17 @@ int main() {
             test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
             test.execute(SegmentArrives{}.with_seqno(isn + 1).with_data("ab").with_result(SegmentArrives::Result::OK));
             test.execute(SegmentArrives{}.with_seqno(isn + 3).with_data("cd").with_result(SegmentArrives::Result::OK));
+        }
+
+        // credit for test: Jared Wasserman
+        {
+            // A byte with invalid stream index should be ignored
+            size_t cap = 4;
+            uint32_t isn = 23452;
+            TCPReceiverTestHarness test{cap};
+            test.execute(SegmentArrives{}.with_syn().with_seqno(isn).with_result(SegmentArrives::Result::OK));
+            test.execute(SegmentArrives{}.with_seqno(isn).with_data("a").with_result(SegmentArrives::Result::OK));
+            test.execute(ExpectTotalAssembledBytes{0});
         }
 
     } catch (const exception &e) {

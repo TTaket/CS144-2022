@@ -116,6 +116,30 @@ struct ExpectTotalAssembledBytes : public ReceiverExpectation {
     }
 };
 
+struct ExpectEof : public ReceiverExpectation {
+    ExpectEof() {}
+    std::string description() const { return "receiver.stream_out().eof() == true"; }
+
+    void execute(TCPReceiver &receiver) const {
+        if (not receiver.stream_out().eof()) {
+            throw ReceiverExpectationViolation(
+                "The TCPReceiver stream reported eof() == false, but was expected to be true");
+        }
+    }
+};
+
+struct ExpectInputNotEnded : public ReceiverExpectation {
+    ExpectInputNotEnded() {}
+    std::string description() const { return "receiver.stream_out().input_ended() == false"; }
+
+    void execute(TCPReceiver &receiver) const {
+        if (receiver.stream_out().input_ended()) {
+            throw ReceiverExpectationViolation(
+                "The TCPReceiver stream reported input_ended() == true, but was expected to be false");
+        }
+    }
+};
+
 struct ExpectBytes : public ReceiverExpectation {
     std::string _bytes;
 
@@ -151,16 +175,14 @@ struct ReceiverAction : public ReceiverTestStep {
 };
 
 struct SegmentArrives : public ReceiverAction {
-    enum class Result { NOT_SYN, OUT_OF_WINDOW, OK };
+    enum class Result { NOT_SYN, OK };
 
     static std::string result_name(Result res) {
         switch (res) {
             case Result::NOT_SYN:
-                return "(no SYN received)";
-            case Result::OUT_OF_WINDOW:
-                return "false (segment does not overlap the window)";
+                return "(no SYN received, so no ackno available)";
             case Result::OK:
-                return "true (segment is at least partly in the window)";
+                return "(SYN received, so ackno available)";
             default:
                 return "unknown";
         }
@@ -253,16 +275,14 @@ struct SegmentArrives : public ReceiverAction {
             o << " with data \"" << data << "\"";
         }
 
-        const bool return_value = receiver.segment_received(std::move(seg));
+        receiver.segment_received(std::move(seg));
 
         Result res;
 
         if (not receiver.ackno().has_value()) {
             res = Result::NOT_SYN;
-        } else if (return_value) {
-            res = Result::OK;
         } else {
-            res = Result::OUT_OF_WINDOW;
+            res = Result::OK;
         }
 
         if (result.has_value() and result.value() != res) {
