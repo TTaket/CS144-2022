@@ -63,7 +63,7 @@ void ByteStream::pop_output(const size_t len) {
 //! \param[in] len bytes will be popped and returned
 //! \returns a string
 std::string ByteStream::read(const size_t len) {
-    size_t ableread = min(len , remaining_capacity());
+    size_t ableread = min(len , bytes_written() - bytes_read());
     string ret = peek_output(ableread);
     pop_output(ableread);
     return ret;

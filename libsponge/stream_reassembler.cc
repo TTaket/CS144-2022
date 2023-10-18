@@ -32,7 +32,7 @@ StreamReassembler::Block::Block()
 StreamReassembler::StreamReassembler(const size_t capacity) 
     :ready_bytes_(0)
     ,unassembled_bytes_(0)
-    ,_output({})
+    ,_output(capacity)
     ,_capacity(capacity)
     ,Blocks_({})
 {}
@@ -47,21 +47,20 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         return;
     }
     //对块进行处理 - 删除超过内存后缀
-    if(index > (ready_bytes_ +_capacity) ){
+    if(index > (ready_bytes_ +_output.remaining_capacity()) ){
         //超过内存的信息 删掉
         return;
     }
     std::string tmpdata = data;
     std::size_t tmpindex = index;
     //计算出合法储存大小
-    if(index < ready_bytes_){
+    if(tmpindex < ready_bytes_){
         size_t dellen = ready_bytes_ - index;
         tmpdata = tmpdata.substr(dellen);
-        tmpindex += dellen;
+        tmpindex = ready_bytes_;
     }
-    if(index + tmpdata.length() > ready_bytes_ +_capacity){
-        size_t dellen = index + tmpdata.length() - ready_bytes_ - _capacity;
-        tmpdata = tmpdata.substr( 0 , tmpdata.length() - dellen);
+    if(tmpindex + tmpdata.length() > ready_bytes_ + _output.remaining_capacity()){
+        tmpdata = tmpdata.substr( 0 , ready_bytes_ +_output.remaining_capacity()  - tmpindex );
     }
 
     //无意义空串
@@ -115,7 +114,7 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
 void StreamReassembler::update_output(size_t index){
     string tmpstr(Blocks_[index].data);
     //取出这个串并且加到output里面
-    _output.write(string(tmpstr));
+    _output.write(tmpstr);
 
     //扩展已经准备的长度
     ready_bytes_ += tmpstr.length();
