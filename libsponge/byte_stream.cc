@@ -24,11 +24,11 @@ ByteStream::ByteStream(const size_t capacity)
 {}
 
 
-inline unsigned long ByteStream::get_pos_written_( size_t off1 = 0) const{
-    return (have_written_+off1)%capacity_;
+inline unsigned long ByteStream::get_pos_written_( size_t off = 0) const{
+    return (have_written_+off)%capacity_;
 }
-inline unsigned long ByteStream::get_pos_read( size_t off2 = 0) const{
-    return (have_read_+off2)%capacity_;
+inline unsigned long ByteStream::get_pos_read( size_t off = 0) const{
+    return (have_read_+off)%capacity_;
 }
 //超过当前容量的字符会被抛弃
 size_t ByteStream::write(const string &data) {
