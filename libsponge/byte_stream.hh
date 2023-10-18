@@ -1,7 +1,10 @@
 #ifndef SPONGE_LIBSPONGE_BYTE_STREAM_HH
 #define SPONGE_LIBSPONGE_BYTE_STREAM_HH
 
+#include <cstddef>
+#include <cstdint>
 #include <string>
+#include <vector>
 
 //! \brief An in-order byte stream.
 
@@ -10,15 +13,25 @@
 //! and then no more bytes can be written.
 class ByteStream {
   private:
-    // Your code here -- add private members as necessary.
+    //提供稳定的字节流 - 实现滚动的数据流 
+    //内存
+    size_t capacity_ ;
+    //装入的数量
+    size_t have_written_;
+    //已经被读的数量
+    size_t have_read_;
+    //利用滚动数组 存放字符串
+    std::vector<char>Buffer_;
 
-    // Hint: This doesn't need to be a sophisticated data structure at
-    // all, but if any of your tests are taking longer than a second,
-    // that's a sign that you probably want to keep exploring
-    // different approaches.
+    //标记位
+    //标记1 - 记录是否关闭 
+    bool is_end_;
+    //标记2 - 错误标记
+    bool is_error_;
 
-    bool _error{};  //!< Flag indicating that the stream suffered an error.
-
+  private:
+    inline unsigned long get_pos_written_(const size_t off) const;
+    inline unsigned long get_pos_read(const size_t off) const;  
   public:
     //! Construct a stream with room for `capacity` bytes.
     ByteStream(const size_t capacity);
@@ -38,7 +51,7 @@ class ByteStream {
     void end_input();
 
     //! Indicate that the stream suffered an error.
-    void set_error() { _error = true; }
+    void set_error();
     //!@}
 
     //! \name "Output" interface for the reader
@@ -59,7 +72,7 @@ class ByteStream {
     bool input_ended() const;
 
     //! \returns `true` if the stream has suffered an error
-    bool error() const { return _error; }
+    bool error() const;
 
     //! \returns the maximum amount that can currently be read from the stream
     size_t buffer_size() const;
