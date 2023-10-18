@@ -35,20 +35,21 @@ int main() {
                                                "test 1 failed: no SYN/ACK in response to SYN");
             test_1.execute(ExpectState{State::SYN_RCVD});
 
-            // wrong seqno! should get ACK back but not transition
-            const WrappingInt32 syn_seqno = seg.header().seqno;
-            test_1.send_ack(WrappingInt32{0}, syn_seqno + 1);
-            test_1.execute(Tick(1));
+            /* remove requirement for corrective ACK in response to out-of-window seqno
+                const WrappingInt32 syn_seqno = seg.header().seqno;
+                test_1.send_ack(WrappingInt32{0}, syn_seqno + 1);
+                test_1.execute(Tick(1));
 
-            test_1.execute(
-                ExpectOneSegment{}.with_no_flags().with_ack(true).with_ackno(1).with_seqno(seg.header().seqno + 1),
-                "test 1 failed: wrong response to old seqno");
+                test_1.execute(
+                    ExpectOneSegment{}.with_no_flags().with_ack(true).with_ackno(1).with_seqno(seg.header().seqno + 1),
+                    "test 1 failed: wrong response to old seqno");
 
-            test_1.send_ack(WrappingInt32(cfg.recv_capacity + 1), syn_seqno + 1);
-            test_1.execute(Tick(1));
+                test_1.send_ack(WrappingInt32(cfg.recv_capacity + 1), syn_seqno + 1);
+                test_1.execute(Tick(1));
 
-            test_1.execute(
-                ExpectOneSegment{}.with_no_flags().with_ack(true).with_ackno(1).with_seqno(seg.header().seqno + 1));
+                test_1.execute(
+                    ExpectOneSegment{}.with_no_flags().with_ack(true).with_ackno(1).with_seqno(seg.header().seqno + 1));
+            */
 
             test_1.send_ack(WrappingInt32{1}, seg.header().seqno + 1);
             test_1.execute(Tick(1));

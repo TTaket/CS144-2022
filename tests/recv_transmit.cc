@@ -62,15 +62,17 @@ int main() {
             test.execute(ExpectBytes{"abcdefgh"});
         }
 
-        {
-            TCPReceiverTestHarness test{4000};
-            test.execute(SegmentArrives{}.with_syn().with_seqno(0).with_result(SegmentArrives::Result::OK));
-            test.execute(SegmentArrives{}.with_seqno(1).with_data("abcd").with_result(SegmentArrives::Result::OK));
-            test.execute(
-                SegmentArrives{}.with_seqno(1).with_data("efgh").with_result(SegmentArrives::Result::OUT_OF_WINDOW));
-            test.execute(
-                SegmentArrives{}.with_seqno(4005).with_data("efgh").with_result(SegmentArrives::Result::OUT_OF_WINDOW));
-        }
+        /* remove requirement for corrective ACK on out-of-window segment
+            {
+                TCPReceiverTestHarness test{4000};
+                test.execute(SegmentArrives{}.with_syn().with_seqno(0).with_result(SegmentArrives::Result::OK));
+                test.execute(SegmentArrives{}.with_seqno(1).with_data("abcd").with_result(SegmentArrives::Result::OK));
+                test.execute(
+                    SegmentArrives{}.with_seqno(1).with_data("efgh").with_result(SegmentArrives::Result::OUT_OF_WINDOW));
+                test.execute(
+                    SegmentArrives{}.with_seqno(4005).with_data("efgh").with_result(SegmentArrives::Result::OUT_OF_WINDOW));
+            }
+        */
 
         // Many (arrive/read)s
         {

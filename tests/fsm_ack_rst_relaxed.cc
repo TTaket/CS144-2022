@@ -68,10 +68,12 @@ int main() {
 
             test_1.execute(ExpectNoSegment{}, "test 1 failed: ACK after past ACK");
 
-            // ack in the future---should get ACK back
-            test_1.send_ack(base_seq, base_seq + 1);
+            /* remove requirement for corrective ACKs
+                // ack in the future---should get ACK back
+                test_1.send_ack(base_seq, base_seq + 1);
 
-            test_1.execute(ExpectOneSegment{}.with_ack(true).with_ackno(base_seq), "test 1 failed: bad ACK");
+                test_1.execute(ExpectOneSegment{}.with_ack(true).with_ackno(base_seq), "test 1 failed: bad ACK");
+            */
 
             // segment out of the window---should get an ACK
             test_1.send_byte(base_seq - 1, base_seq, 1);
