@@ -27,7 +27,7 @@ class StreamReassembler {
           return (data==that.data) && (index_begin == that.index_begin) && (Iseof == that.Iseof);
         }
     };
-  private:
+  public:
     // Your code here -- add private members as necessary.
 
     //已经准备好的字节数 
@@ -81,9 +81,13 @@ class StreamReassembler {
     //! should only be counted once for the purpose of this function.
     size_t unassembled_bytes() const;
 
+    size_t output_remaincapacity() const;
+
     //! \brief Is the internal state empty (other than the output stream)?
     //! \returns `true` if no substrings are waiting to be assembled
     bool empty() const;
+    void insert_SYN();
+    void insert_FIN();
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH

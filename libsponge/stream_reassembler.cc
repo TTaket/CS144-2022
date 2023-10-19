@@ -41,6 +41,8 @@ StreamReassembler::StreamReassembler(const size_t capacity)
 //! possibly out-of-order, from the logical stream, and assembles any newly
 //! contiguous substrings and writes them into the output stream in order.
 void StreamReassembler::push_substring(const string &data, const size_t index, const bool eof) {
+    //如果字符串被裁剪（后边被裁剪 那么eof失效）
+    bool flag_dealeof =false;
     //对块进行处理 - 删除前缀
     if(index + data.length() < ready_bytes_){
         //过期的信息 删掉
@@ -61,14 +63,15 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
     }
     if(tmpindex + tmpdata.length() > ready_bytes_ + _output.remaining_capacity()){
         tmpdata = tmpdata.substr( 0 , ready_bytes_ +_output.remaining_capacity()  - tmpindex );
+        flag_dealeof = true;
     }
 
     //无意义空串
-    if((tmpdata.length() == 0 )&& (!eof)){
+    if((tmpdata.length() == 0 )&& (!eof && !flag_dealeof)){
         return;
     }
 
-    Block newblock(tmpindex , tmpdata , eof);
+    Block newblock(tmpindex , tmpdata , eof&&(!flag_dealeof));
     //去重 
     if (Blocks_.find(tmpindex) != Blocks_.end())
     {
@@ -165,3 +168,11 @@ void StreamReassembler::merge_block (Block &BN1  ,Block &BN2  ){
   BN1.data_len = BN1.index_end - BN1.index_begin;
   BN1.data = tmpdata;
 }
+
+size_t StreamReassembler::output_remaincapacity() const{
+    return _output.remaining_capacity();
+}
+
+
+void StreamReassembler::insert_SYN(){ready_bytes_++;}
+void StreamReassembler::insert_FIN(){ready_bytes_++;}

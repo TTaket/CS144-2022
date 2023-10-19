@@ -31,7 +31,7 @@ WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
 uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
   uint64_t baselen = (static_cast<uint64_t>( static_cast<uint64_t>(1) << 32 ) );
   uint64_t checkval = (static_cast<uint64_t>( static_cast<uint64_t>(1) << 31 ) );
-  uint64_t modlen = (n.raw_value() - isn.raw_value() + baselen)%baselen;    //取mod 后的长度 也是最小的真实距离
+  uint64_t modlen = ( baselen- isn.raw_value() +n.raw_value() )%baselen;    //取mod 后的长度 也是最小的真实距离
   uint64_t retval = 0;
   if(int64_t(checkpoint)/int64_t(baselen) == 0 ){
     retval =  modlen ;
@@ -46,3 +46,4 @@ uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
   }
   return retval ;
 }
+// wa: val = 18446744073490996266, isn = 282768339, and checkpoint = 70290308
