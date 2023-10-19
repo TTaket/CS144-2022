@@ -35,10 +35,6 @@ int main() {
         // Nearly big unwrap with non-zero ISN
         test_should_be(unwrap(WrappingInt32(UINT32_MAX), WrappingInt32(1ul << 31), 0),
                        static_cast<uint64_t>(UINT32_MAX) >> 1);
-        // //特判
-        // test_should_be(unwrap(wrap(static_cast<uint64_t>(18446744073490996266ull),WrappingInt32(282768339) ), WrappingInt32(282768339), static_cast<uint64_t>(70290308)),
-        //                 static_cast<uint64_t>(70290308));
-        // // value = 18446744073490996266, isn = 282768339, and checkpoint = 70290308       
     } catch (const exception &e) {
         cerr << e.what() << endl;
         return 1;
