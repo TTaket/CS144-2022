@@ -6,8 +6,11 @@
 #include "tcp_segment.hh"
 #include "wrapping_integers.hh"
 
+#include <cstdint>
 #include <functional>
+#include <netdb.h>
 #include <queue>
+#include <sys/types.h>
 
 //! \brief The "sender" part of a TCP implementation.
 
@@ -15,14 +18,32 @@
 //! segments, keeps track of which segments are still in-flight,
 //! maintains the Retransmission Timer, and retransmits in-flight
 //! segments if the retransmission timer expires.
+
+
+class TIMER{
+  private:
+    uint64_t starttime;
+    uint64_t outtime;
+    bool Isopen;
+  public:
+    TIMER();
+    void Start(uint64_t starttime , uint64_t outtime);
+    void Close();
+    bool Is_Open();
+    bool Is_OverTime(uint64_t nowtime);
+};
+
+
 class TCPSender {
   private:
     //! our initial sequence number, the number for our SYN.
     WrappingInt32 _isn;
 
     //! outbound queue of segments that the TCPSender wants sent
-    std::queue<TCPSegment> _segments_out{};
+    std::queue<TCPSegment> _segments_out;
 
+    // 待重传队列
+    std::queue<TCPSegment> _ReadyResend;
     //! retransmission timer for the connection
     unsigned int _initial_retransmission_timeout;
 
@@ -30,8 +51,34 @@ class TCPSender {
     ByteStream _stream;
 
     //! the (absolute) sequence number for the next byte to be sent
-    uint64_t _next_seqno{0};
+    uint64_t _next_seqno;
 
+    // 重传次数
+    unsigned long Resend_times;
+    
+    // 状态
+    //syn
+    bool _syn;
+    bool _fin;
+
+    // 时间戳
+    uint64_t Now_Time; 
+
+    //checkpoint
+    uint64_t _checkpoint;
+
+    // 窗口大小
+    size_t Window_Size;
+
+    // 现在的RTO
+    unsigned int NOW_RTO;
+
+    // 计时器
+    TIMER timer;
+
+    uint64_t _bytesflight;
+  private:
+    void Send_meg(TCPSegment & msg);
   public:
     //! Initialize a TCPSender
     TCPSender(const size_t capacity = TCPConfig::DEFAULT_CAPACITY,
@@ -88,5 +135,6 @@ class TCPSender {
     WrappingInt32 next_seqno() const { return wrap(_next_seqno, _isn); }
     //!@}
 };
+
 
 #endif  // SPONGE_LIBSPONGE_TCP_SENDER_HH
