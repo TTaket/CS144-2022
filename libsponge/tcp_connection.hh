@@ -5,6 +5,7 @@
 #include "tcp_receiver.hh"
 #include "tcp_sender.hh"
 #include "tcp_state.hh"
+#include <cstdint>
 
 //! \brief A complete endpoint of a TCP connection
 class TCPConnection {
@@ -21,6 +22,16 @@ class TCPConnection {
     //! in case the remote TCPConnection doesn't know we've received its whole stream?
     bool _linger_after_streams_finish{true};
 
+    //时间相关 
+    uint64_t time_since_last_segment_received_ = 0;
+
+    //存活状态
+    bool _active = true;
+  private:
+  // 把_sender 内的包转移到output队列里面
+    void syn_outqueue();
+  // 发送重置包
+    void send_reset();
   public:
     //! \name "Input" interface for the writer
     //!@{
@@ -78,7 +89,7 @@ class TCPConnection {
     //! \returns `true` if either stream is still running or if the TCPConnection is lingering
     //! after both streams have finished (e.g. to ACK retransmissions from the peer)
     bool active() const;
-    //!@}
+    // //!@}
 
     //! Construct a new connection from a configuration
     explicit TCPConnection(const TCPConfig &cfg) : _cfg{cfg} {}
